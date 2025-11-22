@@ -108,7 +108,7 @@
   async function sendGemini(parts, apikey) {
     try {
       let o = await fetch(
-        "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=" + apikey,
+        https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=AIzaSyA4jEH8Y4Cm7_e0mnu1E4MvrQ1suMfjxok
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
