@@ -1,31 +1,39 @@
 (function(){
-  if (document.getElementById("painel-gemini")) return; // evita múltiplos
+  if (document.getElementById("painel-gemini")) return; // Evita múltiplos painéis abertos
 
+  // HTML e CSS do painel
   const painel = document.createElement("div");
   painel.innerHTML = `
 <style>
-#painel-gemini{position:fixed;bottom:20px;right:20px;width:320px;max-height:520px;padding:15px;background:#1e1e1e;color:#f0f0f0;font-family:sans-serif;border-radius:10px;box-shadow:0 0 10px #000;z-index:9999;overflow-y:auto}
-#painel-gemini input,#painel-gemini textarea{width:100%;box-sizing:border-box;padding:8px;margin-bottom:10px;border-radius:5px;border:none;color:#000 !important}
-#painel-gemini button{width:100%;padding:8px;border:none;border-radius:5px;background-color:#4caf50;color:#fff;cursor:pointer;font-weight:700}
-#painel-gemini #resposta{margin-top:10px;white-space:pre-wrap;background:#2a2a2a;padding:10px;border-radius:5px}
+#painel-gemini{position:fixed;bottom:20px;right:20px;width:340px;max-width:99vw;max-height:540px;padding:16px 13px 24px 13px;background:#191c1d;color:#eee;font-family:sans-serif;border-radius:12px;box-shadow:0 0 18px #000;z-index:2147483647;overflow-y:auto}
+#painel-gemini input[type="text"],#painel-gemini input[type="file"],#painel-gemini button{width:100%;box-sizing:border-box;margin-bottom:10px;padding:8px 6px;border-radius:5px;border:none}
+#painel-gemini input[type="text"]{background:#2c2f30;color:#fafafa;font-size:1rem;outline:none}
+#painel-gemini input[type="text"]:focus{background:#232628}
+#painel-gemini input[type="file"]{background:transparent;color:#fff;font-size:13px;}
+#painel-gemini button{background:#4caf50;color:#fff;font-weight:700;font-size:1.01rem;margin-bottom:7px;margin-top:4px;cursor:pointer;transition:.2s}
+#painel-gemini button:hover{filter:brightness(0.88);}
+#painel-gemini #btn-esconder{position:absolute!important;top:8px!important;right:10px!important;width:auto!important;background:none!important;border:none!important;color:#fff!important;font-size:12px!important;cursor:pointer!important;box-shadow:none!important;padding:2px 4px!important;}
+#painel-gemini #resposta{margin-top:6px;white-space:pre-wrap;word-break:break-word;padding:10px 3px 5px 0;color:#bbf;background:#212327;font-size:1rem;}
 #painel-gemini a{color:#4fc3f7;text-decoration:none;font-size:12px}
 #painel-gemini label{font-size:14px;margin-bottom:5px;display:block;color:#fff}
-#apikey{color:#4caf50!important}
-#btn-esconder{position:absolute!important;top:8px!important;right:10px!important;background:none!important;border:none!important;color:#fff!important;font-size:12px!important;cursor:pointer!important;padding:2px 4px!important;width:auto!important}
-#btn-toggle{position:fixed;bottom:20px;right:20px;background:#000;color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:16px;cursor:pointer;display:none;justify-content:center;align-items:center;z-index:9999}
-#imagem-preview {max-width:100%; display:none; margin-bottom:10px; border-radius:5px;}
+#apikey{color:#4caf50!important;}
+#imagem-preview {max-width:100%;display:none;margin-bottom:10px;border-radius:5px;}
+#btn-toggle{position:fixed;bottom:20px;right:20px;background:#000;color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:16px;cursor:pointer;display:none;justify-content:center;align-items:center;z-index:2147483647;}
 </style>
 <div id="painel-gemini">
   <button id="btn-esconder">esconder</button>
-  <label>API Key do Gemini:</label>
-  <input type="text" id="apikey" placeholder="Cole sua API key aqui..." />
+  <label>API Key do Gemini:
+    <input type="text" id="apikey" placeholder="Cole sua API key aqui..."/>
+  </label>
   <a href="https://aistudio.google.com/apikey" target="_blank">➜ Criar sua API Key (abre em nova aba)</a>
-  <label>Pergunta:</label>
-  <input type="text" id="pergunta" placeholder="Digite sua pergunta..." />
-  <label>Imagem (opcional):</label>
-  <input type="file" id="imagem" accept="image/*" />
+  <label>Pergunta:
+    <input type="text" id="pergunta" placeholder="Digite sua pergunta..."/>
+  </label>
+  <label>Imagem (opcional):
+    <input type="file" id="imagem" accept="image/*"/>
+  </label>
   <img id="imagem-preview"/>
-  <button id="btn">Enviar</button>
+  <button id="btn" title="Enviar pergunta para o Gemini">Enviar</button>
   <div id="resposta">Esperando pergunta...</div>
 </div>
 <button id="btn-toggle">↑</button>
@@ -33,21 +41,20 @@
   document.body.appendChild(painel);
 
   // Seletores
-  const apikeyInput = document.querySelector("#apikey"),
+  const apikeyInput   = document.querySelector("#apikey"),
         perguntaInput = document.querySelector("#pergunta"),
-        respostaDiv = document.querySelector("#resposta"),
-        botaoEnviar = document.querySelector("#btn"),
-        botaoToggle = document.querySelector("#btn-toggle"),
-        painelDiv = document.querySelector("#painel-gemini"),
-        btnEsconder = document.querySelector("#btn-esconder"),
-        imagemInput = document.querySelector("#imagem"),
+        respostaDiv   = document.querySelector("#resposta"),
+        botaoEnviar   = document.querySelector("#btn"),
+        botaoToggle   = document.querySelector("#btn-toggle"),
+        painelDiv     = document.querySelector("#painel-gemini"),
+        btnEsconder   = document.querySelector("#btn-esconder"),
+        imagemInput   = document.querySelector("#imagem"),
         imagemPreview = document.querySelector("#imagem-preview"),
-        defaultApiKey = "",
-        savedKey = localStorage.getItem("gemini_apikey") || defaultApiKey;
-
+        savedKey      = localStorage.getItem("gemini_apikey") || "";
+  
   apikeyInput.value = savedKey;
 
-  // Preview da imagem ao selecionar arquivo
+  // Preview de imagem
   imagemInput.addEventListener("change", function() {
     const file = this.files[0];
     if (file) {
@@ -65,73 +72,72 @@
 
   botaoEnviar.onclick = async () => {
     let pergunta = perguntaInput.value.trim(),
-        apikey = apikeyInput.value.trim();
+        apikey   = apikeyInput.value.trim();
 
-    if (!apikey) {
-      respostaDiv.textContent = "Por favor, cole sua API Key.";
-      return;
-    }
-    if (!pergunta) {
-      respostaDiv.textContent = "Digite uma pergunta primeiro.";
-      return;
-    }
+    if (!apikey)       { respostaDiv.textContent = "Por favor, cole sua API Key."; return; }
+    if (!pergunta)     { respostaDiv.textContent = "Digite uma pergunta primeiro."; return; }
 
     respostaDiv.textContent = "Carregando...";
     localStorage.setItem("gemini_apikey", apikey);
 
-    // Prepara partes do conteúdo
+    // Gemini endpoint sugerido: tente multimodal e caia para texto se der erro
+    const MODELS = [
+      "gemini-1.5-flash-latest", // rápido, multimodal
+      "gemini-1.5-pro-latest",   // robusto, multimodal
+      "gemini-pro"               // fallback só texto
+    ];
+
+    // Monta partes do conteúdo
     let parts = [{ text: pergunta }];
 
-    // Inclui imagem, se houver
+    // Se houver imagem e suportado, adiciona
     if (imagemInput.files[0]) {
       const file = imagemInput.files[0];
       const reader = new FileReader();
       reader.onload = async function(e) {
-        // Extrai base64 da imagem
         const base64 = e.target.result.split(",")[1];
-        parts.push({
-          inlineData: {
-            mimeType: file.type,
-            data: base64
-          }
-        });
-
-        await sendGemini(parts, apikey);
+        parts.push({ inlineData: { mimeType: file.type, data: base64 } });
+        await tryGemini(parts, apikey, respostaDiv, MODELS);
       };
       reader.readAsDataURL(file);
       return;
     } else {
-      await sendGemini(parts, apikey);
+      await tryGemini(parts, apikey, respostaDiv, MODELS);
     }
   };
 
-  async function sendGemini(parts, apikey) {
-    try {
-      let o = await fetch(
-        https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=AIzaSyA4jEH8Y4Cm7_e0mnu1E4MvrQ1suMfjxok
-        {
+  // Função tenta múltiplos modelos se o anterior rejeitar multimodal
+  async function tryGemini(parts, apikey, respostaDiv, models) {
+    for (let m of models) {
+      try {
+        const url = "https://generativelanguage.googleapis.com/v1/models/" + encodeURIComponent(m) + ":generateContent?key=" + encodeURIComponent(apikey);
+        let resp = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts }]
-          })
+          body: JSON.stringify({contents: [{parts}]})
+        });
+        let n = await resp.json();
+        if (n.candidates?.[0]?.content?.parts?.[0]?.text) {
+          respostaDiv.textContent = n.candidates[0].content.parts[0].text;
+          return; // Resposta OK
+        } else if (n.error && n.error.message) {
+          if (
+            /invalid.*field|model does not support|image|not enabled|unsupported/i.test(n.error.message)
+            // Ajuste para pular para outro modelo se erro for relacionado à imagem
+          ) {
+            continue; // tenta próximo modelo da lista
+          }
+          respostaDiv.textContent = "Erro: " + n.error.message;
+          return;
         }
-      );
-      let n = await o.json(),
-          i = n.candidates?.[0]?.content?.parts?.[0]?.text || "Sem resposta.";
-      respostaDiv.textContent = i;
-    } catch (a) {
-      respostaDiv.textContent = "Erro ao buscar resposta.";
-      console.error(a);
+      } catch (e) {
+        respostaDiv.textContent = "Erro na requisição: " + e.message;
+        return;
+      }
     }
+    respostaDiv.textContent = "Nenhum modelo Gemini disponível para esta pergunta com sua chave.";
   }
 
-  btnEsconder.onclick = () => {
-    painelDiv.style.display = "none";
-    botaoToggle.style.display = "flex";
-  };
-  botaoToggle.onclick = () => {
-    painelDiv.style.display = "block";
-    botaoToggle.style.display = "none";
-  };
+  btnEsconder.onclick = () => { painelDiv.style.display = "none"; botaoToggle.style.display = "flex"; };
+  botaoToggle.onclick = () => { painelDiv.style.display = "block"; botaoToggle.style.display = "none"; };
 })();
