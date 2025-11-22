@@ -39,7 +39,6 @@
 `;
   document.body.appendChild(painel);
 
-  // Seletores
   const apikeyInput   = document.getElementById("apikey"),
         perguntaInput = document.getElementById("pergunta"),
         respostaDiv   = document.getElementById("resposta"),
@@ -53,7 +52,6 @@
 
   apikeyInput.value = savedKey;
 
-  // Preview de imagem
   imagemInput.addEventListener("change", function() {
     const file = this.files[0];
     if (file) {
@@ -79,17 +77,14 @@
     respostaDiv.textContent = "Carregando...";
     localStorage.setItem("gemini_apikey", apikey);
 
-    // Tenta esses modelos na ordem:
     const MODELS = [
       "gemini-1.5-flash-latest",
       "gemini-1.5-pro-latest",
       "gemini-pro"
     ];
 
-    // Monta partes
     let parts = [{ text: pergunta }];
 
-    // Caso com imagem
     if (imagemInput.files[0]) {
       const file = imagemInput.files[0];
       const reader = new FileReader();
@@ -119,7 +114,6 @@
           respostaDiv.textContent = n.candidates[0].content.parts[0].text;
           return;
         } else if (n.error && n.error.message) {
-          // só pula de modelo se erro for relacionado a multimodal/imagem/model; senão mostra o erro e para
           if (
             /invalid.*field|model does not support|image|not enabled|unsupported/i.test(n.error.message)
           ) {
