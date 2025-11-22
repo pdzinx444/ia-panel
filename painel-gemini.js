@@ -1,7 +1,6 @@
 (function(){
-  if (document.getElementById("painel-gemini")) return; // Evita múltiplos painéis abertos
+  if (document.getElementById("painel-gemini")) return;
 
-  // HTML e CSS do painel
   const painel = document.createElement("div");
   painel.innerHTML = `
 <style>
@@ -41,17 +40,17 @@
   document.body.appendChild(painel);
 
   // Seletores
-  const apikeyInput   = document.querySelector("#apikey"),
-        perguntaInput = document.querySelector("#pergunta"),
-        respostaDiv   = document.querySelector("#resposta"),
-        botaoEnviar   = document.querySelector("#btn"),
-        botaoToggle   = document.querySelector("#btn-toggle"),
-        painelDiv     = document.querySelector("#painel-gemini"),
-        btnEsconder   = document.querySelector("#btn-esconder"),
-        imagemInput   = document.querySelector("#imagem"),
-        imagemPreview = document.querySelector("#imagem-preview"),
+  const apikeyInput   = document.getElementById("apikey"),
+        perguntaInput = document.getElementById("pergunta"),
+        respostaDiv   = document.getElementById("resposta"),
+        botaoEnviar   = document.getElementById("btn"),
+        botaoToggle   = document.getElementById("btn-toggle"),
+        painelDiv     = document.getElementById("painel-gemini"),
+        btnEsconder   = document.getElementById("btn-esconder"),
+        imagemInput   = document.getElementById("imagem"),
+        imagemPreview = document.getElementById("imagem-preview"),
         savedKey      = localStorage.getItem("gemini_apikey") || "";
-  
+
   apikeyInput.value = savedKey;
 
   // Preview de imagem
@@ -71,26 +70,26 @@
   });
 
   botaoEnviar.onclick = async () => {
-    let pergunta = perguntaInput.value.trim(),
-        apikey   = apikeyInput.value.trim();
+    let pergunta = perguntaInput.value.trim();
+    let apikey   = apikeyInput.value.trim();
 
-    if (!apikey)       { respostaDiv.textContent = "Por favor, cole sua API Key."; return; }
-    if (!pergunta)     { respostaDiv.textContent = "Digite uma pergunta primeiro."; return; }
+    if (!apikey)   { respostaDiv.textContent = "Por favor, cole sua API Key."; return; }
+    if (!pergunta) { respostaDiv.textContent = "Digite uma pergunta primeiro."; return; }
 
     respostaDiv.textContent = "Carregando...";
     localStorage.setItem("gemini_apikey", apikey);
 
-    // Gemini endpoint sugerido: tente multimodal e caia para texto se der erro
+    // Tenta esses modelos na ordem:
     const MODELS = [
-      "gemini-1.5-flash-latest", // rápido, multimodal
-      "gemini-1.5-pro-latest",   // robusto, multimodal
-      "gemini-pro"               // fallback só texto
+      "gemini-1.5-flash-latest",
+      "gemini-1.5-pro-latest",
+      "gemini-pro"
     ];
 
-    // Monta partes do conteúdo
+    // Monta partes
     let parts = [{ text: pergunta }];
 
-    // Se houver imagem e suportado, adiciona
+    // Caso com imagem
     if (imagemInput.files[0]) {
       const file = imagemInput.files[0];
       const reader = new FileReader();
@@ -106,7 +105,6 @@
     }
   };
 
-  // Função tenta múltiplos modelos se o anterior rejeitar multimodal
   async function tryGemini(parts, apikey, respostaDiv, models) {
     for (let m of models) {
       try {
@@ -117,15 +115,15 @@
           body: JSON.stringify({contents: [{parts}]})
         });
         let n = await resp.json();
-        if (n.candidates?.[0]?.content?.parts?.[0]?.text) {
+        if (n.candidates && n.candidates[0] && n.candidates[0].content && n.candidates[0].content.parts && n.candidates[0].content.parts[0] && n.candidates[0].content.parts[0].text) {
           respostaDiv.textContent = n.candidates[0].content.parts[0].text;
-          return; // Resposta OK
+          return;
         } else if (n.error && n.error.message) {
+          // só pula de modelo se erro for relacionado a multimodal/imagem/model; senão mostra o erro e para
           if (
             /invalid.*field|model does not support|image|not enabled|unsupported/i.test(n.error.message)
-            // Ajuste para pular para outro modelo se erro for relacionado à imagem
           ) {
-            continue; // tenta próximo modelo da lista
+            continue;
           }
           respostaDiv.textContent = "Erro: " + n.error.message;
           return;
@@ -138,6 +136,6 @@
     respostaDiv.textContent = "Nenhum modelo Gemini disponível para esta pergunta com sua chave.";
   }
 
-  btnEsconder.onclick = () => { painelDiv.style.display = "none"; botaoToggle.style.display = "flex"; };
-  botaoToggle.onclick = () => { painelDiv.style.display = "block"; botaoToggle.style.display = "none"; };
+  btnEsconder.onclick = function() { painelDiv.style.display = "none"; botaoToggle.style.display = "flex"; };
+  botaoToggle.onclick = function() { painelDiv.style.display = "block"; botaoToggle.style.display = "none"; };
 })();
